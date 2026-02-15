@@ -17,6 +17,7 @@ public class IntroManager : MonoBehaviour
     private void Start()
     {
         string videopath = Path.Combine(Application.streamingAssetsPath, Constants.videoPath);
+        Debug.Log("Video path: " + videopath);
         if (Directory.Exists(videopath))
         {
             string[] videoFiles = Directory.GetFiles(videopath, "*" + Constants.VIDEO_FILE_EXTENSION);
@@ -36,9 +37,13 @@ public class IntroManager : MonoBehaviour
         {
             int randomIndex = UnityEngine.Random.Range(0, videoList.Count);
             lastPlayedVideo = videoList[randomIndex];       //记录已经播放的视频
+
             videoPlayer.url = lastPlayedVideo;
-            videoPlayer.loopPointReached += OnvideoEnd;
+            //videoPlayer.loopPointReached += OnvideoEnd;
+
             videoPlayer.Play();
+
+            StartCoroutine(LoadSceneAfterSeconds(Constants.MENU_SCENE, 2f));
         }
         else
         {
@@ -46,10 +51,32 @@ public class IntroManager : MonoBehaviour
         }
     }
 
-    private void OnvideoEnd(VideoPlayer vp)
-    {
-        SceneManager.LoadScene(Constants.MENU_SCENE);
-    }
+    // private void OnvideoEnd(VideoPlayer vp)
+    // {
+    //     SceneManager.LoadScene(Constants.MENU_SCENE);
+    // }
 
     //public static string GetLastPlayedVideo() => lastPlayedVideoPath;
+
+    private IEnumerator LoadSceneAfterSeconds(string sceneName, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        AsyncOperation op = SceneManager.LoadSceneAsync(sceneName);
+        op.allowSceneActivation = false;
+
+        // 等加载到 90%（Unity 的“已加载但未激活”状态）
+        while (op.progress < 0.9f)
+        {
+            yield return null;
+        }
+
+        // 这里可以加一帧缓冲，减少突兀感
+        yield return null;
+
+        videoPlayer.Pause();
+
+        op.allowSceneActivation = true;
+    }
+
 }

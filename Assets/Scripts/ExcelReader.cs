@@ -108,7 +108,14 @@ public class ExcelReader : MonoBehaviour
 
     private static string GetCellString(IExcelDataReader reader, int index)
     {
-        return reader.IsDBNull(index) ? string.Empty : reader.GetValue(index)?.ToString();
+        //return reader.IsDBNull(index) ? string.Empty : reader.GetValue(index)?.ToString();
+        if (index < 0 || index >= reader.FieldCount)
+        return string.Empty;
+
+        if (reader.IsDBNull(index))
+            return string.Empty;
+
+        return reader.GetValue(index)?.ToString() ?? string.Empty;
     }
 
     private static int GetCellInt(IExcelDataReader reader, int index)

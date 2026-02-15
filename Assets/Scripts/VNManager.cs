@@ -286,8 +286,11 @@ public class VNManager : SingletonMonoBase<VNManager>
             if (storyData[currentLine].speakerName == Constants.END_OF_STORY)
             {
                 GameManager.Instance.hasStarted = false;
-                //FIXME:跳过致谢场景：SceneManager.LoadScene(Constants.CREDITS_SCENE);
-                SceneManager.LoadScene(Constants.MENU_SCENE);
+
+                //FIXME:致谢场景：
+                SceneManager.LoadScene(Constants.CREDITS_SCENE);
+
+                //SceneManager.LoadScene(Constants.MENU_SCENE);
             }
 
             if (storyData[currentLine].speakerName == Constants.CHOICE)
@@ -302,7 +305,7 @@ public class VNManager : SingletonMonoBase<VNManager>
                 DisplayNextLine();
             }
 
-            Debug.Log(storyData[currentLine].speakerName + " " + Constants.GAME);
+            //Debug.Log(storyData[currentLine].speakerName + " " + Constants.GAME);
             if (storyData[currentLine].speakerName == Constants.GAME)
             {
                 LoadMiniGame();
@@ -375,41 +378,89 @@ public class VNManager : SingletonMonoBase<VNManager>
         // }
 
         //处理角色动作
+        // foreach (var cmd in data.characterCommands)
+        // {
+        //     //Debug.Log($"Processing command: {cmd.characterAction} for character: {cmd.characterID}");
+        //     if (cmd.characterAction == Constants.CHARACTERACTION_DISAPPEAR)
+        //     {
+        //         GameManager.Instance.currentCharacterData.
+        //             RemoveAll(c => c.characterID == cmd.characterID);
+        //         CharacterManager.Instance.HideCharacter(cmd.characterID);
+        //     }
+        //     else
+        //     {
+        //         var state = new characterSaveData
+        //         {
+        //             characterID = cmd.characterID,
+        //             characterEmotion = cmd.characterEmotion,
+        //             positionX = cmd.positionX
+        //         };
+
+        //         if (GameManager.Instance.currentCharacterData == null)
+        //             GameManager.Instance.currentCharacterData = new List<characterSaveData>();
+    
+        //         GameManager.Instance.currentCharacterData.
+        //              RemoveAll(c => c.characterID == cmd.characterID);
+
+        //         GameManager.Instance.currentCharacterData
+        //             .Add(state);
+
+        //         if (cmd.characterAction.StartsWith(Constants.CHARACTERACTION_APPEARAT))
+        //         {
+        //             CharacterManager.Instance.showCharacter(
+        //                 cmd.characterID,
+        //                 new Vector2(cmd.positionX, 0f),
+        //                 cmd.characterEmotion
+        //             );
+        //         }
+        //     }
+        // }
+
         foreach (var cmd in data.characterCommands)
         {
-            //Debug.Log($"Processing command: {cmd.characterAction} for character: {cmd.characterID}");
+            if (GameManager.Instance.currentCharacterData == null)
+                GameManager.Instance.currentCharacterData = new List<characterSaveData>();
+
             if (cmd.characterAction == Constants.CHARACTERACTION_DISAPPEAR)
             {
-                GameManager.Instance.currentCharacterData.
-                    RemoveAll(c => c.characterID == cmd.characterID);
-                CharacterManager.Instance.HideCharacter(cmd.characterID);
-            }
-            else
-            {
-                var state = new characterSaveData
-                {
-                    characterID = cmd.characterID,
-                    characterEmotion = cmd.characterEmotion,
-                    positionX = cmd.positionX
-                };
-
-                if (GameManager.Instance.currentCharacterData == null)
-                    GameManager.Instance.currentCharacterData = new List<characterSaveData>();
-    
-                GameManager.Instance.currentCharacterData.
-                     RemoveAll(c => c.characterID == cmd.characterID);
-
                 GameManager.Instance.currentCharacterData
-                    .Add(state);
+                    .RemoveAll(c => c.characterID == cmd.characterID);
 
-                if (cmd.characterAction.StartsWith(Constants.CHARACTERACTION_APPEARAT))
-                {
-                    CharacterManager.Instance.showCharacter(
-                        cmd.characterID,
-                        new Vector2(cmd.positionX, 0f),
-                        cmd.characterEmotion
-                    );
-                }
+                CharacterManager.Instance.HideCharacter(cmd.characterID);
+                continue;
+            }
+
+            // 统一：先更新状态
+            var state = new characterSaveData
+            {
+                characterID = cmd.characterID,
+                characterEmotion = cmd.characterEmotion,
+                positionX = cmd.positionX
+            };
+
+            GameManager.Instance.currentCharacterData
+                .RemoveAll(c => c.characterID == cmd.characterID);
+
+            GameManager.Instance.currentCharacterData
+                .Add(state);
+
+            // 再处理表现
+            if (cmd.characterAction.StartsWith(Constants.CHARACTERACTION_APPEARAT))
+            {
+                CharacterManager.Instance.showCharacter(
+                    cmd.characterID,
+                    new Vector2(cmd.positionX, 0f),
+                    cmd.characterEmotion
+                );
+            }
+            else if (cmd.characterAction == Constants.CHARACTERACTION_MOVETO)
+            {
+                Debug.Log("Move command: " + cmd.characterID + " to " + cmd.positionX);
+                CharacterManager.Instance.MoveCharacter(
+                    cmd.characterID,
+                    cmd.positionX,
+                    cmd.characterEmotion
+                );
             }
         }
 
@@ -490,10 +541,11 @@ public class VNManager : SingletonMonoBase<VNManager>
     private void showChocies()
     {
         List<ChoiceOption> choices = ParseChoices();
-        foreach (var opt in choices)
-        {
-            Debug.Log($"选项：{opt.text},目标：{opt.nextStoryFileName},变化:{string.Join(",",opt.changes.Select(c => $"{c.characterID}:{c.delta}"))},条件:{string.Join(",",opt.conditions.Select(c => $"{c.characterID}:{c.minValue}--{c.maxValue}"))}");
-        }
+        // Test:选项测试
+        // foreach (var opt in choices)
+        // {
+        //     Debug.Log($"选项：{opt.text},目标：{opt.nextStoryFileName},变化:{string.Join(",",opt.changes.Select(c => $"{c.characterID}:{c.delta}"))},条件:{string.Join(",",opt.conditions.Select(c => $"{c.characterID}:{c.minValue}--{c.maxValue}"))}");
+        // }
         ChoiceManager.Instance.showChoices(choices,handleChoice);
     }
 

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using DG.Tweening;
 
 public class CharacterManager : SingletonMonoBase<CharacterManager>
 {
@@ -57,6 +58,27 @@ public class CharacterManager : SingletonMonoBase<CharacterManager>
             display.gameObject.SetActive(false);
             activeDisplays.Remove(characterID);
         }
+    }
+
+    public void MoveCharacter(string characterID,float positionX,string emotionName,float duration = 0.3f)
+    {
+        if (!activeDisplays.TryGetValue(characterID, out CharacterDisplay display))
+            return;
+
+        // 立刻换表情
+        if (!string.IsNullOrEmpty(emotionName))
+        {
+            var data = allCharacters
+                .FirstOrDefault(c => c.CharacterID == characterID);
+
+            if (data != null && data.emotionsDic.TryGetValue(emotionName, out var sprite))
+            {
+                display.SetEmotion(sprite);
+            }
+        }
+
+        // 再开始移动
+        display.MoveToX(positionX, duration);
     }
 
     public void ClearAll()

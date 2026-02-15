@@ -49,7 +49,7 @@ public class Constants : MonoBehaviour
     public static float DEFAULT_AUTO_WAITING_SECONDS = 0.1f;
 
     public static string SKIP_ON = "skipon";
-    public static string SKIP_OFF = "skioff";
+    public static string SKIP_OFF = "skipoff";
     public static float DEFAULT_SKIP_WAITING_SECONDS = 0.02f;
 
     public static int DEFAULT_START_INDEX = 0;
